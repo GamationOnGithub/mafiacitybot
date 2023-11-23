@@ -17,7 +17,7 @@ namespace mafiacitybot.GuildCommands
                 .WithType(ApplicationCommandOptionType.SubCommand)
             ).AddOption(new SlashCommandOptionBuilder()
                 .WithName("set")
-                .WithDescription("Set your day/night action.")
+                .WithDescription("Add a letter to send.")
                 .WithType(ApplicationCommandOptionType.SubCommand)
             );
 
