@@ -13,7 +13,7 @@ public class Program
 {
     public DiscordSocketClient client = new DiscordSocketClient(new DiscordSocketConfig() {
         AlwaysDownloadUsers = true,
-        GatewayIntents = GatewayIntents.GuildMembers | GatewayIntents.AllUnprivileged - GatewayIntents.GuildScheduledEvents - GatewayIntents.GuildInvites
+        GatewayIntents = GatewayIntents.GuildMembers | GatewayIntents.MessageContent | GatewayIntents.AllUnprivileged- GatewayIntents.GuildScheduledEvents - GatewayIntents.GuildInvites
     });
     public Settings settings;
     public Dictionary<ulong, Guild> guilds = new Dictionary<ulong, Guild>();
@@ -81,6 +81,7 @@ public class Program
             await Phase.CreateCommand(client, guild);
             await Setup.CreateCommand(client, guild);
             await Register.CreateCommand(client, guild);
+            await RegisterCommands.CreateCommand(client, guild);
             await Letter.CreateCommand(client, guild);
             await HostLetter.CreateCommand(client, guild);
             await Actions.CreateCommand(client, guild);
@@ -94,17 +95,18 @@ public class Program
             await HostLetter.CreateCommand(client, guild);
             await Lock.CreateCommand(client, guild);
             await Vote.CreateCommand(client, guild);
-            if (guild.Id == 1167188182262095952u)
+            await AnonChat.CreateCommand(client, guild);
+            /* if (guild.Id == 1167188182262095952u)
             {
                 await RegisterCommands.CreateCommand(client, guild);
-            }
+            } */
+            
             _ = LogAsync(new LogMessage(LogSeverity.Info, "CreateCommands", "Done creating commands for guild "+guild.Name+" ("+guild.Id+")"));
         }
         _ = LogAsync(new LogMessage(LogSeverity.Info, "CreateCommands", "Done creating commands..."));
     }
     public async Task LoadGuildCommands()
     {
-
         foreach (SocketGuild guild in client.Guilds)
         {
             Guild? g = Guild.Load(guild.Id);
@@ -114,6 +116,8 @@ public class Program
         client.ModalSubmitted += Letter.ModalSubmitted;
         client.ModalSubmitted += HostLetter.ModalSubmitted;
         client.ModalSubmitted += Actions.ModalSubmitted;
+        // lol this fucking sucks
+        client.MessageReceived += msg => AnonChat.HandleMessage(msg, guilds);
     }
 
     public async Task AddGuild(Guild guild)
