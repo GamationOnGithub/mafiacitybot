@@ -98,6 +98,9 @@ public class SlashCommandHandler
                 case "host_anonchat":
                     _ = AnonChat.HandleCommand(command, Program).ContinueWith(OnFault, TaskContinuationOptions.OnlyOnFaulted);
                     break;
+                case "forward":
+                    _ = Forward.HandleCommand(command, Program).ContinueWith(OnFault, TaskContinuationOptions.OnlyOnFaulted);
+                    break;
             }
         }
         else

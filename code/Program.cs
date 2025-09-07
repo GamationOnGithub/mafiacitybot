@@ -20,7 +20,7 @@ public class Program
     public SlashCommandHandler slashCommandHandler;
     public static Program instance;
     public static string DataPath = ( false ? "../../../../Data" : "./Data"); //set to false when putting on raspberry pi
-    public static string VERSION = "1.2.1";
+    public static string VERSION = "1.3";
 
     public Program()
     {
@@ -96,6 +96,7 @@ public class Program
             await Lock.CreateCommand(client, guild);
             await Vote.CreateCommand(client, guild);
             await AnonChat.CreateCommand(client, guild);
+            await Forward.CreateCommand(client, guild);
             /* if (guild.Id == 1167188182262095952u)
             {
                 await RegisterCommands.CreateCommand(client, guild);

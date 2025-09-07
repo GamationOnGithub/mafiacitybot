@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Net;
 using Discord.WebSocket;
+using System.Collections.Concurrent;
 
 namespace mafiacitybot.GuildCommands;
 
@@ -117,17 +118,20 @@ public static class AnonChat
         
         foreach (var chatTunnel in guild.AnonChats.Values)
         {
+            if (!chatTunnel.ForwardingUsers.TryGetValue(msg.Author.Id, out var status) || !status) return;
+            
             if (msg.Channel.Id == chatTunnel.SourceChannel && msg.Author.Id == chatTunnel.Source)
             {
                 var receiverChannel = (msg.Channel as SocketGuildChannel).Guild.GetTextChannel(chatTunnel.ReceiverChannel);
-                string toForward = "Source: " + msg.CleanContent;
-                await receiverChannel.SendMessageAsync(toForward);
+                if (!chatTunnel.ForwardingPrefixes.TryGetValue(msg.Author.Id, out var prefix)) prefix = "Source";
+                await receiverChannel.SendMessageAsync($"{prefix}: {msg.CleanContent}");
                 return;
             }
             if (msg.Channel.Id == chatTunnel.ReceiverChannel && msg.Author.Id == chatTunnel.Receiver)
             {
                 var sourceChannel = (msg.Channel as SocketGuildChannel).Guild.GetTextChannel(chatTunnel.SourceChannel);
-                await sourceChannel.SendMessageAsync($"Receiver: {msg.Content}");
+                if (!chatTunnel.ForwardingPrefixes.TryGetValue(msg.Author.Id, out var prefix)) prefix = "Receiver";
+                await sourceChannel.SendMessageAsync($"{prefix}: {msg.CleanContent}");
                 return;
             }
         }
@@ -141,6 +145,8 @@ public static class AnonChat
         public ulong Receiver { get; }
         public ulong SourceChannel { get; }
         public ulong ReceiverChannel { get; }
+        public ConcurrentDictionary<ulong, bool> ForwardingUsers { get; set; } = new();
+        public ConcurrentDictionary<ulong, string> ForwardingPrefixes { get; set; } = new();
 
         public AnonChatTunnel(int id, ulong source, ulong receiver, ulong sourceChannel, ulong receiverChannel)
         {
