@@ -13,7 +13,7 @@ public static class Forward
         command.WithDescription("Manage forwarding messages through anon chats.");
         command.AddOption("status", ApplicationCommandOptionType.Boolean, "Whether to enable or disable forwarding.", isRequired: true);
         command.AddOption("prefix", ApplicationCommandOptionType.String, "The prefix attached to your forwarded messages.");
-        command.AddOption("id", ApplicationCommandOptionType.Integer, "The ID of the anonymous chat to manage.");
+        command.AddOption("id", ApplicationCommandOptionType.String, "The ID of the anonymous chat to manage.");
 
         try
         {
@@ -55,10 +55,9 @@ public static class Forward
 
         bool status = (bool)command.Data.Options.First(option => option.Name == "status").Value;
         
-        int? id = null;
+        char? id = null;
         var userSetId = command.Data.Options.FirstOrDefault(option => option.Name == "id");
-        // convert is a mess but i hate working with longs
-        if (userSetId != null && userSetId.Value != null) id = Convert.ToInt32(userSetId);
+        if (userSetId != null) id = ((string)userSetId)[0];
         
         var userSetPrefix = command.Data.Options.FirstOrDefault(option => option.Name == "prefix");
         string? prefix = userSetPrefix?.Value?.ToString();
@@ -76,7 +75,7 @@ public static class Forward
         // TODO: make this less garbage
         if (id is not null)
         {
-            guild.AnonChats.TryGetValue(id.Value, out tunnel);
+            guild.AnonChats.TryGetValue((char)id, out tunnel);
             if (tunnel == null || (tunnel.Source != user.Id && tunnel.Receiver != user.Id))
             {
                 await command.RespondAsync("Either this chat does not exist, or you do not have access to it.");
@@ -107,8 +106,8 @@ public static class Forward
             else resetPrefix = false;
         }
 
-        string toSend = $"Forwarding {(status ? "enabled" : "disabled")} for chat with ID {tunnel.Id}. ";
-        toSend += (resetPrefix ? "Your messages will be prefixed with \"{prefix}\"." : "");
+        string toSend = $"Forwarding {(status ? "enabled" : "disabled")} for chat with ID `{tunnel.Id}`. ";
+        toSend += (resetPrefix ? $"Your messages will be prefixed with \"{prefix}\"." : "");
         await command.RespondAsync(toSend);
     }
 }

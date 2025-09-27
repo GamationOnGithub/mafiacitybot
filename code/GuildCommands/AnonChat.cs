@@ -31,7 +31,7 @@ public static class AnonChat
             .WithName("close")
             .WithDescription("Close the anonymous chat between two players.")
             .WithType(ApplicationCommandOptionType.SubCommand)
-            .AddOption("id",  ApplicationCommandOptionType.Integer, "The numerical ID of the chat to close.")
+            .AddOption("id",  ApplicationCommandOptionType.String, "The character ID of the chat to close.", isRequired: true)
         );
 
         try
@@ -74,6 +74,8 @@ public static class AnonChat
                 SocketGuildUser receiver = (SocketGuildUser)chatParams["receiver"];
                 SocketGuildChannel sourceChannel = (SocketGuildChannel)chatParams["source_channel"];
                 SocketGuildChannel receiverChannel = (SocketGuildChannel)chatParams["receiver_channel"];
+                chatParams.TryGetValue("announce", out var announce);
+                announce = announce == null ? false : (bool)announce;
                 
                 Player? sourcePlayerObj = guild.Players.Find(player => player.IsPlayer(source.Id));
                 Player? receiverPlayerObj = guild.Players.Find(player => player.IsPlayer(receiver.Id));
@@ -84,21 +86,32 @@ public static class AnonChat
                 }
                 
                 // TODO: Add support for multiple tunnels by making the ID dynamic
-                var tunnel = new AnonChatTunnel(0, source.Id, receiver.Id, sourceChannel.Id, receiverChannel.Id);
-                guild.AnonChats[0] = tunnel;
+                char chatid = guild.GetChatID();
+                var tunnel = new AnonChatTunnel(chatid, source.Id, receiver.Id, sourceChannel.Id, receiverChannel.Id);
+                guild.AnonChats[chatid] = tunnel;
                 
-                await command.RespondAsync($"Started an anonymous chat between {sourcePlayerObj.Name} and {receiverPlayerObj.Name} in {sourceChannel.Name} and {receiverChannel.Name}.");
+                await command.RespondAsync($"Started an anonymous chat between {sourcePlayerObj.Name} and {receiverPlayerObj.Name} in {sourceChannel.Name} and {receiverChannel.Name} with id {chatid}.");
+                if ((bool)announce)
+                {
+                    var channel1 = await program.client.GetChannelAsync(sourceChannel.Id) as ITextChannel;
+                    var channel2 = await program.client.GetChannelAsync(receiverChannel.Id) as ITextChannel;
+                    await channel1.SendMessageAsync(
+                        $"**You hear a voice in the darkness...**\n*An anonymous chat has been started in this channel with id `{chatid}`. Use `/forward` to start sending messages back.*");
+                    await channel2.SendMessageAsync(
+                        $"**You hear a voice in the darkness...**\n*An anonymous chat has been started in this channel with id `{chatid}`. Use `/forward` to start sending messages back.*");
+                }
                 break;
             
             case "close":
-                var id = (long)command.Data.Options.First().Options.First().Value;
-                if (guild.AnonChats.TryRemove((int)id, out var session))
+                var id = (string)command.Data.Options.First().Options.First();
+                if (guild.AnonChats.TryRemove(id[0], out var session))
                 {
-                    await command.RespondAsync($"Closed anonymous chat #{id}.");
+                    await command.RespondAsync($"Closed anonymous chat `{id}`.");
+                    guild.ChatIDs.Enqueue(id[0]);
                 }
                 else
                 {
-                    await command.RespondAsync($"No active anonymous chat with ID #{id}.");
+                    await command.RespondAsync($"No active anonymous chat with ID `{id}`.");
                 }
                 break;
             
@@ -140,7 +153,7 @@ public static class AnonChat
     
     public class AnonChatTunnel
     {
-        public int Id { get; }
+        public char Id { get; }
         public ulong Source { get; }
         public ulong Receiver { get; }
         public ulong SourceChannel { get; }
@@ -148,7 +161,7 @@ public static class AnonChat
         public ConcurrentDictionary<ulong, bool> ForwardingUsers { get; set; } = new();
         public ConcurrentDictionary<ulong, string> ForwardingPrefixes { get; set; } = new();
 
-        public AnonChatTunnel(int id, ulong source, ulong receiver, ulong sourceChannel, ulong receiverChannel)
+        public AnonChatTunnel(char id, ulong source, ulong receiver, ulong sourceChannel, ulong receiverChannel)
         {
             this.Id = id;
             this.Source = source;
