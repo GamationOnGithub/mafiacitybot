@@ -107,7 +107,7 @@ public static class Forward
         }
 
         string toSend = $"Forwarding {(status ? "enabled" : "disabled")} for chat with ID `{tunnel.Id}`. ";
-        toSend += (resetPrefix ? $"Your messages will be prefixed with \"{prefix}\"." : "");
+        toSend += ((resetPrefix && !status) ? $"Your messages will be prefixed with \"{prefix}\"." : "");
         await command.RespondAsync(toSend);
     }
 }
