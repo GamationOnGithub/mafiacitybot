@@ -109,7 +109,7 @@ namespace mafiacitybot.GuildCommands
                             foreach (Player.Letter letter in player.letters)
                             {
                                 string response = "";
-                                response += $"*Letter* #{count} to {program.client.GetUser(letter.recipientID).Username}:\n`{letter.content}`";
+                                response += $"*Letter* #{count} to {program.client.GetUser(letter.recipientID).Username}:\n`{letter.content.Substring(0, Math.Min(letter.content.Length, 1800))}...`";
                                 await command.RespondAsync(response);
                                 count++;
                             }
