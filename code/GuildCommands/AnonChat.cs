@@ -2,6 +2,7 @@
 using Discord.Net;
 using Discord.WebSocket;
 using System.Collections.Concurrent;
+using System.Net.Mime;
 
 namespace mafiacitybot.GuildCommands;
 
@@ -32,6 +33,11 @@ public static class AnonChat
             .WithDescription("Close the anonymous chat between two players.")
             .WithType(ApplicationCommandOptionType.SubCommand)
             .AddOption("id",  ApplicationCommandOptionType.String, "The character ID of the chat to close.", isRequired: true)
+        );
+        command.AddOption(new SlashCommandOptionBuilder()
+            .WithName("list")
+            .WithDescription("Get the status of all anonymous chats.")
+            .WithType(ApplicationCommandOptionType.SubCommand)
         );
 
         try
@@ -115,6 +121,39 @@ public static class AnonChat
                 }
                 break;
             
+            case "list":
+                if (guild.AnonChats.Count == 0)
+                {
+                    await command.RespondAsync("No active anonymous chats.");
+                }
+                
+                var server = (command.User as SocketGuildUser)?.Guild; 
+                if (server == null)
+                {
+                    await command.RespondAsync("This bot only works inside a server.");
+                    return;
+                }
+                
+                string result = "";
+                foreach (var anontunnel in guild.AnonChats.Values.OrderBy(t => t.Id))
+                {
+                    var sourceUser = server.GetUser(anontunnel.Source);
+                    var receiverUser = server.GetUser(anontunnel.Receiver);
+                    var sourceUserChannel = server.GetTextChannel(anontunnel.SourceChannel);
+                    var receiverUserChannel = server.GetTextChannel(anontunnel.ReceiverChannel);
+
+                    // Forwarding status lookup
+                    anontunnel.ForwardingUsers.TryGetValue(anontunnel.Source, out bool sourceForward);
+                    anontunnel.ForwardingUsers.TryGetValue(anontunnel.Receiver, out bool receiverForward);
+
+                    result += $"Tunnel {anontunnel.Id}";
+                    result += $"\n - Source: {sourceUser.Username} from {sourceUserChannel.Name} with forwarding {(sourceForward ? "enabled" : "disabled")}";
+                    result += $"\n - Receiver: {receiverUser.Username} from {receiverUserChannel.Name} with forwarding {(receiverForward ? "enabled" : "disabled")}\n";
+                }
+                
+                await command.RespondAsync($"```{result}```");
+                break;
+            
             default:
                 await command.RespondAsync("Uh oh.");
                 break;
@@ -131,7 +170,7 @@ public static class AnonChat
         
         foreach (var chatTunnel in guild.AnonChats.Values)
         {
-            if (!chatTunnel.ForwardingUsers.TryGetValue(msg.Author.Id, out var status) || !status) return;
+            if (!chatTunnel.ForwardingUsers.TryGetValue(msg.Author.Id, out var status) || !status) continue;
             
             if (msg.Channel.Id == chatTunnel.SourceChannel && msg.Author.Id == chatTunnel.Source)
             {

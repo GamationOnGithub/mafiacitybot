@@ -39,6 +39,7 @@ public class Guild
     public List<Letter> hostLetters { get; set; }
     public Dictionary<string, List<Player>> Votes { get; set; }
     public ConcurrentDictionary<char, AnonChat.AnonChatTunnel> AnonChats { get; set; }
+    public ConcurrentDictionary<int, Masquerade.MasqueradeTunnel> MasqueradeTunnels { get; set; }
     public Queue<char> ChatIDs { get; set; }
     public Phase CurrentPhase { get; set; }
 
@@ -53,6 +54,7 @@ public class Guild
         hostLetters = new List<Letter>();
         Votes = new();
         AnonChats = new();
+        MasqueradeTunnels = new();
         SetupChatIDs();
         isLocked = false;
         CurrentPhase = Phase.Day;
