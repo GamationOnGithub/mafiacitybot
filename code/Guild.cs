@@ -40,6 +40,7 @@ public class Guild
     public Dictionary<string, List<Player>> Votes { get; set; }
     public ConcurrentDictionary<char, AnonChat.AnonChatTunnel> AnonChats { get; set; }
     public ConcurrentDictionary<int, Masquerade.MasqueradeTunnel> MasqueradeTunnels { get; set; }
+    public ConcurrentDictionary<char, Contest.ContestRoom> Contests { get; set; }
     public Queue<char> ChatIDs { get; set; }
     public Phase CurrentPhase { get; set; }
 
@@ -55,6 +56,7 @@ public class Guild
         Votes = new();
         AnonChats = new();
         MasqueradeTunnels = new();
+        Contests = new();
         SetupChatIDs();
         isLocked = false;
         CurrentPhase = Phase.Day;

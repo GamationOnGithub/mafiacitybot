@@ -116,6 +116,14 @@ public class SlashCommandHandler
                 case "host_whisper":
                     _ = SetWhispers.HandleCommand(command, Program).ContinueWith(OnFault, TaskContinuationOptions.OnlyOnFaulted);
                     break;
+                /*
+                case "host_contest":
+                    _ = Contest.HandleCommand(command, Program).ContinueWith(OnFault, TaskContinuationOptions.OnlyOnFaulted);
+                    break;
+                case "forward_contest":
+                    _ = ForwardContest.HandleCommand(command, Program).ContinueWith(OnFault, TaskContinuationOptions.OnlyOnFaulted);
+                    break;
+                */
             }
         }
         else

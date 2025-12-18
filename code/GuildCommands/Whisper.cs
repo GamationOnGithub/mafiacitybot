@@ -126,6 +126,13 @@ namespace mafiacitybot.GuildCommands
                 .WithType(ApplicationCommandOptionType.SubCommand)
                 .AddOption("amt", ApplicationCommandOptionType.Integer, "The amount of whispers to set.", true)
             );
+            command.AddOption(new SlashCommandOptionBuilder()
+                .WithName("set")
+                .WithDescription("Host-only.")
+                .WithType(ApplicationCommandOptionType.SubCommand)
+                .AddOption("player", ApplicationCommandOptionType.User, "The player to give whispers to.", isRequired: true)
+                .AddOption("amt",  ApplicationCommandOptionType.Integer, "The amount of whispers to set.", isRequired: true)
+            );
 
             try
             {
@@ -157,15 +164,39 @@ namespace mafiacitybot.GuildCommands
                 await command.RespondAsync($"Command must be executed in the host channel!");
                 return;
             }
-
+            var fieldName = command.Data.Options.First().Name;
             var options = command.Data.Options.First().Options;
-            int whispers = Convert.ToInt32(options.First(o => o.Name == "amt")?.Value ?? 0);
-            foreach (Player player in guild.Players)
+            switch (fieldName)
             {
-                player.whisperStock = whispers;
-            }
+                case "set_all":
+                    int whispers = Convert.ToInt32(options.First(o => o.Name == "amt")?.Value ?? 0);
+                    foreach (Player player in guild.Players)
+                    {
+                        player.whisperStock = whispers;
+                    }
 
-            await command.RespondAsync($"Gave all PLAYERS {whispers} whispers.");
+                    await command.RespondAsync($"Gave all PLAYERS {whispers} whispers.");
+                    break;
+                
+                case "set":
+                    SocketGuildUser? p = options.ElementAt(0).Value as SocketGuildUser;
+                    Player? whisperer = guild.Players.Find(x => x != null && x.IsPlayer(p.Id));
+
+                    if (whisperer == null) {
+                        await command.RespondAsync("Target is not a valid PLAYER in this game.");
+                        return;
+                    }
+                    int whisperAmt =  Convert.ToInt32(options.First(o => o.Name == "amt")?.Value ?? 0);
+                    whisperer.whisperStock = whisperAmt;
+
+                    await command.RespondAsync($"Set {whisperer.Name}'s whisper count to {whisperAmt}.");
+                    break;
+                
+                default:
+                    await command.RespondAsync("Uh oh! Something very bad has happened.");
+                    break;
+            }
+                
         }
     }
 }
