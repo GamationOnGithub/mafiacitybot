@@ -102,8 +102,8 @@ public class Program
             //await ConfirmPrefix.CreateCommand(client, guild);
             await Whisper.CreateCommand(client, guild);
             await SetWhispers.CreateCommand(client, guild);
-            //await ForwardContest.CreateCommand(client, guild);
-            //await Contest.CreateCommand(client, guild);
+            await ForwardContest.CreateCommand(client, guild);
+            await Contest.CreateCommand(client, guild);
             /* if (guild.Id == 1167188182262095952u)
             {
                 await RegisterCommands.CreateCommand(client, guild);
@@ -126,7 +126,7 @@ public class Program
         client.ModalSubmitted += Actions.ModalSubmitted;
         // lol this fucking sucks
         client.MessageReceived += msg => AnonChat.HandleMessage(msg, guilds);
-        //client.MessageReceived += msg => Contest.HandleMessage(msg, guilds);
+        client.MessageReceived += msg => Contest.HandleMessage(msg, guilds);
         //client.MessageReceived += msg => Masquerade.HandleMessage(msg, guilds, client);
         client.ModalSubmitted += modal => Whisper.ModalSubmitted(modal, this);
     }

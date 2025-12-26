@@ -11,16 +11,16 @@ public static class Contest
     {
         var command = new SlashCommandBuilder();
         command.WithName("host_contest");
-        command.WithDescription("Host-only.");
+        command.WithDescription("(Host-only) Manage a contest.");
         
         command.AddOption(new SlashCommandOptionBuilder()
             .WithName("setup")
             .WithDescription("Host-only.")
             .WithType(ApplicationCommandOptionType.SubCommand)
             .AddOption("target", ApplicationCommandOptionType.Channel,
-                "Secret", isRequired: true)
+                "The channel to log all messages to.", isRequired: true)
             .AddOption("announce", ApplicationCommandOptionType.Boolean,
-                "Secret")
+                "Whether to alert participants when they're added.")
         );
         
         command.AddOption(new SlashCommandOptionBuilder()
@@ -28,11 +28,11 @@ public static class Contest
             .WithDescription("Host-only.")
             .WithType(ApplicationCommandOptionType.SubCommand)
             .AddOption("contest_id", ApplicationCommandOptionType.String, 
-                "Secret", isRequired: true)
+                "The ID of the contest you're adding a PLAYER to.", isRequired: true)
             .AddOption("user", ApplicationCommandOptionType.User, 
-                "Secret", isRequired: true)
+                "The PLAYER you're adding to the contest.", isRequired: true)
             .AddOption("max_aliases", ApplicationCommandOptionType.Integer, 
-                "Secret", isRequired: true)
+                "How many personalities (aliases) they can set up.", isRequired: true)
         );
         
         command.AddOption(new SlashCommandOptionBuilder()
@@ -40,9 +40,9 @@ public static class Contest
             .WithDescription("Host-only")
             .WithType(ApplicationCommandOptionType.SubCommand)
             .AddOption("id", ApplicationCommandOptionType.String, 
-                "Secret", isRequired: true)
+                "The ID of the contest to remove a PLAYER from.", isRequired: true)
             .AddOption("user", ApplicationCommandOptionType.User, 
-                "Secret", isRequired: true)
+                "The PLAYER to remove from the contest.", isRequired: true)
         );
         
         command.AddOption(new SlashCommandOptionBuilder()
@@ -50,7 +50,7 @@ public static class Contest
             .WithDescription("Host-only")
             .WithType(ApplicationCommandOptionType.SubCommand)
             .AddOption("id", ApplicationCommandOptionType.String, 
-                "Secret", isRequired: true)
+                "The ID of the contest to close.", isRequired: true)
         );
         
         command.AddOption(new SlashCommandOptionBuilder()
@@ -121,7 +121,7 @@ public static class Contest
                 
                 if (maxAliases < 1)
                 {
-                    await command.RespondAsync("You must give each user at least one alias.");
+                    await command.RespondAsync("You must give each user at least one personality.");
                     return;
                 }
                 
@@ -140,7 +140,7 @@ public static class Contest
                 
                 contest.RegisteredUsers[user.Id] = new ContestUserRegistration(user.Id, playerObj.ChannelID, maxAliases);
                 
-                await command.RespondAsync($"Registered {user.Username} for contest `{addContestId}` with {maxAliases} aliases.");
+                await command.RespondAsync($"Registered {user.Username} for contest `{addContestId}` with {maxAliases} personalities.");
                 
                 if (contest.announce)
                 {
@@ -148,7 +148,7 @@ public static class Contest
                     if (participantChannel != null)
                     {
                         await participantChannel.SendMessageAsync(
-                            $"**Join my contest...**\n*You are now a participant in [Role Name's] contest with id `{addContestId}`. Use `/forward_contest {addContestId} [alias] [messagePrefix]` to set up your alias and message prefix.");
+                            $"**Step right up for a thrilling contest!**\n*You are now a participant in the Ringleader Puppet's contest with id `{addContestId}`. Use `/forward_contest {addContestId} [personality] [messagePrefix]` to set up your personality and message prefix.*");
                     }
                 }
                 break;

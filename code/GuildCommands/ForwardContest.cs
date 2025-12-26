@@ -10,10 +10,10 @@ public static class ForwardContest
     {
         var command = new SlashCommandBuilder();
         command.WithName("forward_contest");
-        command.WithDescription("Secret");
-        command.AddOption("contest_id", ApplicationCommandOptionType.String, "Secret", isRequired: true);
-        command.AddOption("alias", ApplicationCommandOptionType.String, "Secret", isRequired: true);
-        command.AddOption("prefix", ApplicationCommandOptionType.String, "Secret", isRequired: true);
+        command.WithDescription("Set up your personality for a contest.");
+        command.AddOption("contest_id", ApplicationCommandOptionType.String, "The ID of the contest you're setting up for.", isRequired: true);
+        command.AddOption("personality", ApplicationCommandOptionType.String, "Your alias for others in the contest to see.", isRequired: true);
+        command.AddOption("prefix", ApplicationCommandOptionType.String, "Your message prefix (e.g. !)", isRequired: true);
 
         try
         {
@@ -55,7 +55,7 @@ public static class ForwardContest
         }
         
         char contestId = contestIdStr[0];
-        string alias = (string)command.Data.Options.First(option => option.Name == "alias").Value;
+        string alias = (string)command.Data.Options.First(option => option.Name == "personality").Value;
         string prefix = (string)command.Data.Options.First(option => option.Name == "prefix").Value;
         
         if (!guild.Contests.TryGetValue(contestId, out var contest))
@@ -73,19 +73,19 @@ public static class ForwardContest
         if (registration.Aliases.TryGetValue(alias, out var existingAlias))
         {
             existingAlias.Prefix = prefix;
-            await command.RespondAsync($"Updated alias `{alias}` with new prefix `{prefix}`.");
+            await command.RespondAsync($"Updated personality `{alias}` with new prefix `{prefix}`.");
             return;
         }
         
         if (registration.Aliases.Count >= registration.MaxAliases)
         {
-            await command.RespondAsync($"Sorry, you've already used up your nameplates.\n*You cannot set more aliases.*");
+            await command.RespondAsync("**Don't try to steal the spotlight.**\n*You cannot set more aliases.*");
             return;
         }
 
         var newAlias = new Contest.ContestAlias(alias, prefix);
         registration.Aliases[alias] = newAlias;
         
-        await command.RespondAsync($"Added alias `{alias}` with prefix `{prefix}` for contest `{contestId}`");
+        await command.RespondAsync($"Added personality `{alias}` with prefix `{prefix}` for contest `{contestId}`");
     }
 }
